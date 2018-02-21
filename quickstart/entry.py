@@ -38,6 +38,8 @@ class entry_data:
         return True
 
     def gen_folder(self, dest):
+        if dest == str():
+            return
         if os.path.exists(os.path.dirname(dest)) is False:
             self.gen_folder(os.path.dirname(dest))
         os.mkdir(dest)
@@ -53,8 +55,8 @@ class entry_data:
         pattern = re.compile('|'.join(data.keys()))
         filedata = pattern.sub(
             lambda x: data[x.group()], filedata)
-        # with open(dest, 'w') as file:
-        #     file.write(filedata)
+        with open(dest, 'w') as file:
+            file.write(filedata)
         return True
 
     def create_file(self, dest):
@@ -129,17 +131,16 @@ class entry_data:
                 self.value = None
 
     def run_action(self, data):
-        if self.action_data is None or self.action is None:
+        if self.action_data is None or self.action is None or self.value is False or self.value is None:
             return
+        pattern = re.compile('|'.join(data.keys()))
         if self.action_data and isinstance(self.action_data, str):
-            pattern = re.compile('|'.join(data.keys()))
             self.action_data = pattern.sub(
                 lambda x: data[x.group()], self.action_data)
         elif isinstance(self.action_data, tuple):
-            self.action_data = (pattern.sub(
-                lambda x: data[x.group()], prt) for prt in self.action_data)
+            self.action_data = tuple([pattern.sub(
+                lambda x: data[x.group()], prt) for prt in self.action_data])
         elif isinstance(self.action_data, list):
-            pattern = re.compile('|'.join(data.keys()))
             for i, cmd in enumerate(self.action_data):
                 if isinstance(cmd, tuple):
                     cmd = tuple([pattern.sub(
@@ -151,31 +152,34 @@ class entry_data:
         if self.action is actions.EXE:
             if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
                 for exe in self.action_data:
-                    # os.system(exe)
-                    print("exe: {}".format(exe))
+                    os.system(exe)
             else:
-                print("exe: {}".format(self.action_data))
-                # os.system(exe)
+                os.system(self.action_data)
         elif self.action is actions.DIR:
             if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
                 for folder in self.action_data:
-                    print("gen_folder: {}".format(folder))
-                    # self.gen_folder(folder)
+                    self.gen_folder(folder)
             else:
-                print("gen_folder: {}".format(folder))
-                # self.gen_folder(self.action_data)
+                self.gen_folder(self.action_data)
         elif self.action is actions.FILE:
             if isinstance(self.action_data, list):
                 for filecmd in self.action_data:
                     if isinstance(filecmd, tuple):
                         source, dest = filecmd
                         if os.path.exists(os.path.dirname(dest)) is False:
-                            pass
-                            # self.gen_folder(os.path.dirname(dest))
+                            self.gen_folder(os.path.dirname(dest))
                         if self.write_file(source, dest, data) is False:
                             print("Source file does not exist!")
                     else:
                         self.create_file(filecmd)
+            elif isinstance(self.action_data, tuple):
+                source, dest = self.action_data
+                if os.path.exists(os.path.dirname(dest)) is False:
+                    self.gen_folder(os.path.dirname(dest))
+                if self.write_file(source, dest, data) is False:
+                    print("Source file does not exist!")
+            else:
+                self.create_file(self.action_data)
 
 
 class options:
