@@ -1,5 +1,6 @@
 
 import re
+import os
 from enum import Enum
 
 
@@ -10,7 +11,7 @@ class actions(Enum):
 
 
 class entry_data:
-    def __init__(self, name_str, help_str=str(), action=None, type_=None, choices=list(), default=None, require=None, ext=None):
+    def __init__(self, name_str, help_str=str(), action=None, type_=None, choices=list(), default=None, require=None, ext=None, lang=None):
         self.name = name_str
         self.help = help_str
         self.choices = choices
@@ -19,6 +20,7 @@ class entry_data:
         self.action = action
         self.require = require
         self.action_data = ext
+        self.lang = lang
         self.value = None
 
     def check_int(self, string):
@@ -33,6 +35,29 @@ class entry_data:
             float(string)
         except ValueError:
             return False
+        return True
+
+    def gen_folder(self, dest):
+        if os.path.exists(os.path.dirname(dest)) is False:
+            self.gen_folder(os.path.dirname(dest))
+        os.mkdir(dest)
+
+    def write_file(self, source, dest, data):
+        source = os.path.join(os.path.dirname(__file__),
+                              "templates/", self.lang, source)
+        if os.path.isfile(source) is False:
+            print(source)
+            return False
+        with open(source, 'r') as file:
+            filedata = file.read()
+        pattern = re.compile('|'.join(data.keys()))
+        filedata = pattern.sub(
+            lambda x: data[x.group()], filedata)
+        # with open(dest, 'w') as file:
+        #     file.write(filedata)
+        return True
+
+    def create_file(self, dest):
         return True
 
     def display(self, color=True):
@@ -104,29 +129,64 @@ class entry_data:
                 self.value = None
 
     def run_action(self, data):
+        if self.action_data is None or self.action is None:
+            return
         if self.action_data and isinstance(self.action_data, str):
             pattern = re.compile('|'.join(data.keys()))
             self.action_data = pattern.sub(
                 lambda x: data[x.group()], self.action_data)
+        elif isinstance(self.action_data, tuple):
+            self.action_data = (pattern.sub(
+                lambda x: data[x.group()], prt) for prt in self.action_data)
         elif isinstance(self.action_data, list):
             pattern = re.compile('|'.join(data.keys()))
-            for cmd in self.action_data:
-                cmd = pattern.sub(
-                    lambda x: data[x.group()], cmd)
-        print(self.action_data)
-        if self.action is None:
-            return
+            for i, cmd in enumerate(self.action_data):
+                if isinstance(cmd, tuple):
+                    cmd = tuple([pattern.sub(
+                        lambda x: data[x.group()], prt) for prt in cmd])
+                else:
+                    cmd = pattern.sub(
+                        lambda x: data[x.group()], cmd)
+                self.action_data[i] = cmd
         if self.action is actions.EXE:
-            return
+            if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
+                for exe in self.action_data:
+                    # os.system(exe)
+                    print("exe: {}".format(exe))
+            else:
+                print("exe: {}".format(self.action_data))
+                # os.system(exe)
+        elif self.action is actions.DIR:
+            if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
+                for folder in self.action_data:
+                    print("gen_folder: {}".format(folder))
+                    # self.gen_folder(folder)
+            else:
+                print("gen_folder: {}".format(folder))
+                # self.gen_folder(self.action_data)
+        elif self.action is actions.FILE:
+            if isinstance(self.action_data, list):
+                for filecmd in self.action_data:
+                    if isinstance(filecmd, tuple):
+                        source, dest = filecmd
+                        if os.path.exists(os.path.dirname(dest)) is False:
+                            pass
+                            # self.gen_folder(os.path.dirname(dest))
+                        if self.write_file(source, dest, data) is False:
+                            print("Source file does not exist!")
+                    else:
+                        self.create_file(filecmd)
 
 
 class options:
-    def __init__(self):
+    def __init__(self, lang, disp_lang=None):
         self.entries = {"null": []}
         self.current_group = "null"
         self.cmds = list()
         self.files = list()
         self.dirs = list()
+        self.lang = lang
+        self.disp_lang = disp_lang if disp_lang else lang
 
     def group(self, string):
         self.entries[string] = list()
@@ -134,10 +194,14 @@ class options:
 
     def add_entry(self, name_str, help_str=str(), action=None, type=None, choices=list(), default=None, require=None, ext=None):
         self.entries[self.current_group].append(entry_data(
-            name_str, help_str, action, type, choices, default, require, ext))
+            name_str, help_str, action, type, choices, default, require, ext, self.lang))
 
     def prompt(self, color=True):
         data = dict()
+        if color:
+            print("\033[1;4;34m{:^40}\033[0m".format(self.disp_lang.title()))
+        else:
+            print("{:^40}".format(self.disp_lang.title()))
         for key, value in self.entries.items():
             if key != "null":
                 if color:
@@ -145,7 +209,11 @@ class options:
                 else:
                     print("{:^40}".format(key))
             for entry in value:
-                if entry.require is None or (entry.require in data and data[entry.require]):
+                if entry.require is None:
+                    entry.prompt(color)
+                elif isinstance(entry.require, str) and entry.require in data and data[entry.require]:
+                    entry.prompt(color)
+                elif isinstance(entry.require, tuple) and entry.require[0] in data and data[entry.require[0]] == entry.require[1]:
                     entry.prompt(color)
                 data[entry.name] = entry.value
 
