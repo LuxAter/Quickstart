@@ -118,6 +118,8 @@ class entry_data:
                     self.value = False
             elif self.type == str or self.type == None:
                 self.value = str(self.value)
+            elif self.type == list:
+                self.value = self.value.split()
             elif self.type not in (int, float, bool, str, None) and callable(self.type):
                 self.value = self.type(self.value)
             else:
@@ -165,11 +167,19 @@ class entry_data:
             if isinstance(self.action_data, list):
                 for filecmd in self.action_data:
                     if isinstance(filecmd, tuple):
-                        source, dest = filecmd
-                        if os.path.exists(os.path.dirname(dest)) is False:
-                            self.gen_folder(os.path.dirname(dest))
-                        if self.write_file(source, dest, data) is False:
-                            print("Source file does not exist!")
+                        if len(filecmd) == 2:
+                            source, dest = filecmd
+                            if os.path.exists(os.path.dirname(dest)) is False:
+                                self.gen_folder(os.path.dirname(dest))
+                            if self.write_file(source, dest, data) is False:
+                                print("Source file does not exist!")
+                        else:
+                            val, source, dest = filecmd
+                            if self.value == val:
+                                if os.path.exists(os.path.dirname(dest)) is False:
+                                    self.gen_folder(os.path.dirname(dest))
+                                if self.write_file(source, dest, data) is False:
+                                    print("Source file does not exist!")
                     else:
                         self.create_file(filecmd)
             elif isinstance(self.action_data, tuple):
@@ -195,6 +205,18 @@ class options:
     def group(self, string):
         self.entries[string] = list()
         self.current_group = string
+
+    def add_file(self, desc, dest=None):
+        if dest:
+            self.files.append((desc, dest))
+        else:
+            self.files.append(desc)
+
+    def add_dir(self, desc):
+        self.dirs.append(desc)
+
+    def add_cmd(self, desc):
+        self.cmds.append(desc)
 
     def add_entry(self, name_str, help_str=str(), action=None, type=None, choices=list(), default=None, require=None, ext=None):
         self.entries[self.current_group].append(entry_data(
@@ -230,8 +252,23 @@ class options:
 
     def run(self):
         data = dict()
+        ent = entry_data("tmp")
+        ent.lang = self.lang
         for key, value in self.get_data().items():
             data["{{" + key + "}}"] = value
+        for dir_path in self.dirs:
+            ent.gen_folder(dir_path)
+        for item in self.files:
+            if isinstance(item, tuple):
+                dest, source = item
+                if os.path.exists(os.path.dirname(dest)) is False:
+                    ent.gen_folder(os.path.dirname(dest))
+                if ent.write_file(source, dest, data) is False:
+                    print("Source file does not exist!")
+            else:
+                ent.create_file(item)
+        for cmd in self.cmds:
+            os.system(cmd)
         for key, value in self.entries.items():
             for entry in value:
                 entry.run_action(data)

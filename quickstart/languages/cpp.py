@@ -6,6 +6,13 @@ from generator import GEN
 from entry import options, actions
 
 OPTS = options("cpp", "C++")
+# OPTS.add_dir("{{Source}}")
+# OPTS.add_dir("{{Include}}")
+# OPTS.add_dir("{{External}}")
+OPTS.add_file("source/main.cpp", "{{Root}}/{{Source}}.main.cpp")
+OPTS.add_file(".clang-format", "{{Root}}/.clang-format")
+OPTS.add_file("Makefile", "{{Root}}/Makefile")
+OPTS.add_file("source/Makefile", "{{Root}}/{{Source}}/Makefile")
 OPTS.add_entry("Name", "Project name", type=str)
 OPTS.add_entry("Description", "Project description", type=str)
 OPTS.group("Directories")
@@ -24,6 +31,7 @@ OPTS.add_entry("Remote", "Remote url for git repository", action=actions.EXE,
 OPTS.group("UnitTests")
 OPTS.add_entry("UnitTests", "Enable unit testing using Gtest",
                action=actions.FILE, type=bool, default=True, ext=[
+                   ("test/tmp.cpp", "{{Test}}/tmp.cpp"),
                    ("test/Makefile", "{{Test}}/Makefile"),
                    ("external/Makefile", "{{External}}/Makefile")])
 OPTS.add_entry("Test", "Test directory", default="test")
@@ -35,9 +43,37 @@ OPTS.add_entry("Doc", "Add documentation to the project",
                type=bool, default=True)
 OPTS.add_entry("DocDir", "Documentation directory", default="docs")
 OPTS.add_entry("DocSys", "Documentation engine", type=str, default="None",
-               choices={"None", "Sphinx", "MkDocs", "Doxygen"}, require="Doc")
+               choices={"None", "Sphinx", "MkDocs", "Doxygen"}, require="Doc",
+               action=actions.FILE, ext=[
+                   ("Sphinx", "docs/Makefile", "{{DocDir}}/Makefile"),
+                   ("Sphinx", "docs/source/conf.py",
+                    "{{DocDir}}/source/conf.py"),
+                   ("Sphinx", "docs/source/index.rst",
+                    "{{DocDir}}/source/index.rst"),
+                   ("MkDocs", "mkdocs.yml", "{{Root}}/mkdocs.yml"),
+                   ("MkDocs", "docs/index.md", "{{DocDir}}/index.md"),
+                   ("Doxygen", "Doxyfile", "{{Roor}}/Doxyfile")
+               ])
 OPTS.add_entry("Author", "Sphinx author", type=str,
                require=("DocSys", "Sphinx"))
 OPTS.add_entry("Copyright", "Sphinx copyright",
                type=str, require=("DocSys", "Sphinx"))
+OPTS.group("Compiling")
+OPTS.add_entry("CompSys", "Compiling system", type=str,
+               default="None", choices={"Make", "Cmake"})
+OPTS.add_entry("Copiler", "Compiler", type=str,
+               default="g++", choices={"g++", "clang++"})
+OPTS.add_entry("Link", "Linked libraries", type=list)
+OPTS.group("Continuouse Integration")
+OPTS.add_entry("CI", "Enable continuous integration services",
+               type=bool, default=True)
+OPTS.add_entry("CISys", "Continuouse integration service", type=str,
+               default="None", choices={"Travis", "Jenkins", "Circle"}, require="CI",
+               action=actions.FILE, ext=[("Travis", "travis.yml", ".travis.yml")])
+OPTS.add_entry("CIapt", "Install from apt", type=list, require="CI")
+OPTS.add_entry("CIpip", "Install from pip", type=list, require="CI")
+OPTS.add_entry("Cov", "Enable code coverage",
+               type=bool, default=True, require="CI")
+OPTS.add_entry("CovSye", "Code coverage service", type=str,
+               default="None", choices={"None", "CodeCov", "Coveralls"}, require="Cov")
 GEN.languages.append(OPTS)
