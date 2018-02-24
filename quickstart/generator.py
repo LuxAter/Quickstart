@@ -1,4 +1,4 @@
-import entry
+import quickstart.entry
 
 
 class _Getch:

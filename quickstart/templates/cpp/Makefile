@@ -5,7 +5,7 @@ export LINK= {{Link}}
 export INCLUDE=
 export TYPE= TYPE(lib/exe)
 
-export SOURCE_DIR= {{Source}} 
+export SOURCE_DIR= {{Source}}
 export TEST_DIR= {{Test}}
 export EXTERNAL_DIR = {{External}}
 export BUILD_DIR= {{Build}}

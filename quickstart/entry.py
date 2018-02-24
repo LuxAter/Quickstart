@@ -10,6 +10,26 @@ class actions(Enum):
     FILE = 2
 
 
+def replace(obj, keys):
+    pattern = re.compile('|'.join(keys.keys()))
+    if obj and isinstance(obj, str):
+        obj = pattern.sub(
+            lambda x: keys[x.group()], obj)
+    elif isinstance(obj, tuple):
+        obj = tuple([pattern.sub(
+            lambda x: keys[x.group()], prt) for prt in obj])
+    elif isinstance(obj, list):
+        for i, cmd in enumerate(obj):
+            if isinstance(cmd, tuple):
+                cmd = tuple([pattern.sub(
+                    lambda x: keys[x.group()], prt) for prt in cmd])
+            else:
+                cmd = pattern.sub(
+                    lambda x: keys[x.group()], cmd)
+            obj[i] = cmd
+    return obj
+
+
 class entry_data:
     def __init__(self, name_str, help_str=str(), action=None, type_=None, choices=list(), default=None, require=None, ext=None, lang=None):
         self.name = name_str
@@ -135,22 +155,7 @@ class entry_data:
     def run_action(self, data):
         if self.action_data is None or self.action is None or self.value is False or self.value is None:
             return
-        pattern = re.compile('|'.join(data.keys()))
-        if self.action_data and isinstance(self.action_data, str):
-            self.action_data = pattern.sub(
-                lambda x: data[x.group()], self.action_data)
-        elif isinstance(self.action_data, tuple):
-            self.action_data = tuple([pattern.sub(
-                lambda x: data[x.group()], prt) for prt in self.action_data])
-        elif isinstance(self.action_data, list):
-            for i, cmd in enumerate(self.action_data):
-                if isinstance(cmd, tuple):
-                    cmd = tuple([pattern.sub(
-                        lambda x: data[x.group()], prt) for prt in cmd])
-                else:
-                    cmd = pattern.sub(
-                        lambda x: data[x.group()], cmd)
-                self.action_data[i] = cmd
+        self.action_data = replace(self.action_data, data)
         if self.action is actions.EXE:
             if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
                 for exe in self.action_data:
@@ -255,12 +260,16 @@ class options:
         ent = entry_data("tmp")
         ent.lang = self.lang
         for key, value in self.get_data().items():
+            if isinstance(value, list):
+                value = ' '.join(value)
             data["{{" + key + "}}"] = value
         for dir_path in self.dirs:
+            dir_path = replace(dir_path, data)
             ent.gen_folder(dir_path)
         for item in self.files:
+            item = replace(item, data)
             if isinstance(item, tuple):
-                dest, source = item
+                source, dest = item
                 if os.path.exists(os.path.dirname(dest)) is False:
                     ent.gen_folder(os.path.dirname(dest))
                 if ent.write_file(source, dest, data) is False:
@@ -268,6 +277,7 @@ class options:
             else:
                 ent.create_file(item)
         for cmd in self.cmds:
+            cmd = replace(cmd, data)
             os.system(cmd)
         for key, value in self.entries.items():
             for entry in value:

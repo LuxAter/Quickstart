@@ -1,7 +1,7 @@
-from generator import GEN
-import languages.cpp
-import languages.python
-import languages.viml
+from quickstart.generator import GEN
+import quickstart.languages.cpp
+import quickstart.languages.python
+import quickstart.languages.viml
 
 
 def main():

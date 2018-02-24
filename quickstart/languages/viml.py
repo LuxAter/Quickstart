@@ -2,8 +2,8 @@
 Implements VimL Generator
 """
 
-from generator import GEN
-from entry import options, actions
+from quickstart.generator import GEN
+from quickstart.entry import options, actions
 
 OPTS = options("viml", "Vim Language")
 OPTS.add_entry("Name", "Project name", type=str)
