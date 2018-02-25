@@ -1,4 +1,3 @@
-
 import re
 import os
 from enum import Enum
@@ -13,25 +12,34 @@ class actions(Enum):
 def replace(obj, keys):
     pattern = re.compile('|'.join(keys.keys()))
     if obj and isinstance(obj, str):
-        obj = pattern.sub(
-            lambda x: keys[x.group()], obj)
+        obj = pattern.sub(lambda x: keys[x.group()], obj)
     elif isinstance(obj, tuple):
-        obj = tuple([pattern.sub(
-            lambda x: keys[x.group()], prt) for prt in obj])
+        obj = tuple(
+            [pattern.sub(lambda x: keys[x.group()], prt) for prt in obj])
     elif isinstance(obj, list):
         for i, cmd in enumerate(obj):
             if isinstance(cmd, tuple):
-                cmd = tuple([pattern.sub(
-                    lambda x: keys[x.group()], prt) for prt in cmd])
+                cmd = tuple([
+                    pattern.sub(lambda x: keys[x.group()], prt) for prt in cmd
+                ])
             else:
-                cmd = pattern.sub(
-                    lambda x: keys[x.group()], cmd)
+                cmd = pattern.sub(lambda x: keys[x.group()], cmd)
             obj[i] = cmd
     return obj
 
 
 class entry_data:
-    def __init__(self, name_str, help_str=str(), action=None, type_=None, choices=list(), default=None, require=None, ext=None, lang=None):
+
+    def __init__(self,
+                 name_str,
+                 help_str=str(),
+                 action=None,
+                 type_=None,
+                 choices=list(),
+                 default=None,
+                 require=None,
+                 ext=None,
+                 lang=None):
         self.name = name_str
         self.help = help_str
         self.choices = choices
@@ -65,16 +73,15 @@ class entry_data:
         os.mkdir(dest)
 
     def write_file(self, source, dest, data):
-        source = os.path.join(os.path.dirname(__file__),
-                              "templates/", self.lang, source)
+        source = os.path.join(
+            os.path.dirname(__file__), "templates/", self.lang, source)
         if os.path.isfile(source) is False:
             print(source)
             return False
         with open(source, 'r') as file:
             filedata = file.read()
         pattern = re.compile('|'.join(data.keys()))
-        filedata = pattern.sub(
-            lambda x: data[x.group()], filedata)
+        filedata = pattern.sub(lambda x: data[x.group()], filedata)
         with open(dest, 'w') as file:
             file.write(filedata)
         return True
@@ -140,7 +147,8 @@ class entry_data:
                 self.value = str(self.value)
             elif self.type == list:
                 self.value = self.value.split()
-            elif self.type not in (int, float, bool, str, None) and callable(self.type):
+            elif self.type not in (int, float, bool, str,
+                                   None) and callable(self.type):
                 self.value = self.type(self.value)
             else:
                 self.value = None
@@ -148,8 +156,8 @@ class entry_data:
                 print("{:{}}Invalid Type".format("", len(self.name) + 2))
                 continue
             if self.choices and self.value not in self.choices:
-                print("{:{}}Choice not in choices".format(
-                    "", len(self.name) + 2))
+                print(
+                    "{:{}}Choice not in choices".format("", len(self.name) + 2))
                 self.value = None
 
     def run_action(self, data):
@@ -157,13 +165,15 @@ class entry_data:
             return
         self.action_data = replace(self.action_data, data)
         if self.action is actions.EXE:
-            if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
+            if isinstance(self.action_data, list) or isinstance(
+                    self.action_data, tuple):
                 for exe in self.action_data:
                     os.system(exe)
             else:
                 os.system(self.action_data)
         elif self.action is actions.DIR:
-            if isinstance(self.action_data, list) or isinstance(self.action_data, tuple):
+            if isinstance(self.action_data, list) or isinstance(
+                    self.action_data, tuple):
                 for folder in self.action_data:
                     self.gen_folder(folder)
             else:
@@ -181,7 +191,8 @@ class entry_data:
                         else:
                             val, source, dest = filecmd
                             if self.value == val:
-                                if os.path.exists(os.path.dirname(dest)) is False:
+                                if os.path.exists(
+                                        os.path.dirname(dest)) is False:
                                     self.gen_folder(os.path.dirname(dest))
                                 if self.write_file(source, dest, data) is False:
                                     print("Source file does not exist!")
@@ -198,6 +209,7 @@ class entry_data:
 
 
 class options:
+
     def __init__(self, lang, disp_lang=None):
         self.entries = {"null": []}
         self.current_group = "null"
@@ -223,9 +235,18 @@ class options:
     def add_cmd(self, desc):
         self.cmds.append(desc)
 
-    def add_entry(self, name_str, help_str=str(), action=None, type=None, choices=list(), default=None, require=None, ext=None):
-        self.entries[self.current_group].append(entry_data(
-            name_str, help_str, action, type, choices, default, require, ext, self.lang))
+    def add_entry(self,
+                  name_str,
+                  help_str=str(),
+                  action=None,
+                  type=None,
+                  choices=list(),
+                  default=None,
+                  require=None,
+                  ext=None):
+        self.entries[self.current_group].append(
+            entry_data(name_str, help_str, action, type, choices, default,
+                       require, ext, self.lang))
 
     def prompt(self, color=True):
         data = dict()
@@ -242,9 +263,13 @@ class options:
             for entry in value:
                 if entry.require is None:
                     entry.prompt(color)
-                elif isinstance(entry.require, str) and entry.require in data and data[entry.require]:
+                elif isinstance(
+                        entry.require,
+                        str) and entry.require in data and data[entry.require]:
                     entry.prompt(color)
-                elif isinstance(entry.require, tuple) and entry.require[0] in data and data[entry.require[0]] == entry.require[1]:
+                elif isinstance(entry.require,
+                                tuple) and entry.require[0] in data and data[
+                                    entry.require[0]] == entry.require[1]:
                     entry.prompt(color)
                 data[entry.name] = entry.value
 
