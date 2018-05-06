@@ -1,4 +1,5 @@
 from quickstart.generator import GEN
+import quickstart.languages.c
 import quickstart.languages.cpp
 import quickstart.languages.python
 import quickstart.languages.viml
