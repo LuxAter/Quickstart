@@ -1,0 +1,50 @@
+{
+    "Name": "Project name",
+    "Description": "Project description",
+    "Directories": {
+        "force": true,
+        "Root": ["Root directory", "{{Name}}"],
+        "Source": ["Source directory", "source"],
+        "Include": ["Include directory", "include"],
+        "Build": ["Build directory", "build"],
+        "External": ["External directory", "external"]
+    },
+    "Git": {
+        "help": "Create a git repository",
+        "default": true,
+        "Ignore": ["Create default git ignore file", true, "bool"],
+        "Remote": {
+            "help": "Add remote repository",
+            "default": true,
+            "URL": "Remote url for git repository"
+        }
+    },
+    "Compiling": {
+        "force": true,
+        "CompSys": ["Compiling system", "make", ["make", "cmake", "none"]],
+        "C": ["Compiler", "clang", ["g", "clang"]],
+        "Link": ["Libraries to link"]
+    },
+    "UnitTests": {
+        "help": "Enable unit testing",
+        "default": true,
+        "Test": ["Test directory", "test"],
+        "CUint": ["Add CUint as a submodule", true, "bool"]
+    },
+    "CI": {
+        "help": "Enable continuous integration services",
+        "default": true,
+        "Sys": ["Continuous integration service", "travis", ["none", "travis", "jenkins", "circle"]],
+        "Cov": {
+            "help": "Enable code coverage service",
+            "default": true,
+            "Sys": ["Code coverage service", "codecov", ["none", "codecov", "coveralls"]]
+        }
+    },
+    "Documentation": {
+        "help": "Add documentation to the project",
+        "default": true,
+        "Doc": ["Documentation directory", "docs"],
+        "Sys": ["Documentation engine", "none", ["none", "sphinx", "mkdocs", "doxygen", "docusaurus", "dauxio", "slate"]]
+    }
+}

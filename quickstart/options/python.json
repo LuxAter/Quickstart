@@ -1,0 +1,48 @@
+{
+    "Name": "Project name",
+    "Description": "Project description",
+    "Directories": {
+        "force": true,
+        "Root": ["Root directory", "{{Name}}"]
+    },
+    "Config": {
+        "force": true,
+        "PipTempalte": ["Create a pip installable package", true, "bool"],
+        "PyEnv": {
+            "help": "Enable PyEnv",
+            "default": true,
+            "Version": ["Python version", "3.6.5", ["2.4", "2.5", "2.7", "3.1", "3.2", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "3.6.4", "3.6.5", "3.7.-dev"]]
+        }
+    },
+    "Git": {
+        "help": "Create a git repository",
+        "default": true,
+        "Ignore": ["Create default git ignore file", true, "bool"],
+        "Remote": {
+            "help": "Add remote repository",
+            "default": true,
+            "URL": "Remote url for git repository"
+        }
+    },
+    "UnitTests": {
+        "help": "Enable unit testing",
+        "default": true,
+        "Test": ["Test directory", "test"]
+    },
+    "CI": {
+        "help": "Enable continuous integration services",
+        "default": true,
+        "Sys": ["Continuous integration service", "travis", ["none", "travis", "jenkins", "circle"]],
+        "Cov": {
+            "help": "Enable code coverage service",
+            "default": true,
+            "Sys": ["Code coverage service", "codecov", ["none", "codecov", "coveralls"]]
+        }
+    },
+    "Documentation": {
+        "help": "Add documentation to the project",
+        "default": true,
+        "Doc": ["Documentation directory", "docs"],
+        "Sys": ["Documentation engine", "none", ["none", "sphinx", "mkdocs", "doxygen", "docusaurus", "dauxio", "slate"]]
+    }
+}

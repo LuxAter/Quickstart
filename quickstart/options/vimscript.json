@@ -1,0 +1,27 @@
+{
+    "Name": "Project name",
+    "Description": "Project description",
+    "Directories":{
+        "force": true,
+        "Root": ["Root directory", "{{Name}}"]
+    },
+    "Git": {
+        "help": "Create a git repository",
+        "default": true,
+        "Ignore": ["Create default git ignore file", true, "bool"],
+        "Remote": {
+            "help": "Add remote repository",
+            "default": true,
+            "URL": "Remote url for git repository"
+        }
+    },
+    "Sections":{
+        "force": true,
+        "Syntax": ["Create syntax", false, "bool"],
+        "Ftdetect": ["Create file type detection", false, "bool"],
+        "Ftplugin": ["Create file type plugin", false, "bool"],
+        "Indent": ["Create indentation", false, "bool"],
+        "Autoload": ["Create autoload", false, "bool"],
+        "Doc": ["Create documentation", true, "bool"]
+    }
+}
