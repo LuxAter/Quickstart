@@ -1,51 +1,91 @@
 {
-    "Name": "Project name",
-    "Description": "Project description",
-    "Directories": {
-        "force": true,
-        "Root": ["Root directory", "{{Name}}"],
-        "Source": ["Source directory", "source"],
-        "Include": ["Include directory", "include"],
-        "Build": ["Build directory", "build"],
-        "External": ["External directory", "external"]
-    },
-    "Git": {
-        "help": "Create a git repository",
-        "default": true,
-        "Ignore": ["Create default git ignore file", true, "bool"],
-        "Remote": {
-            "help": "Add remote repository",
+    "Options": {
+        "Name": "Project name",
+        "Description": "Project description",
+        "Dir": {
+            "force": true,
+            "Root": ["Root directory", "{{Name}}"],
+            "Source": ["Source directory", "source"],
+            "Include": ["Include directory", "include"],
+            "Build": ["Build directory", "build"],
+            "External": ["External directory", "external"]
+        },
+        "Git": {
+            "help": "Create a git repository",
             "default": true,
-            "URL": "Remote url for git repository"
+            "Ignore": ["Create default git ignore file", true, "bool"],
+            "Remote": {
+                "help": "Add remote repository",
+                "default": true,
+                "URL": "Remote url for git repository"
+            }
+        },
+        "Compiling": {
+            "force": true,
+            "Sys": ["Compiling system", "make", ["make", "cmake", "none"]],
+            "CXX": ["Compiler", "clang++", ["g++", "clang++"]],
+            "CPP": ["C++ version", "c++17", ["c++11", "c++14", "c++17", "c++20"]],
+            "Link": ["Libraries to link", ""]
+        },
+        "UnitTests": {
+            "help": "Enable unit testing",
+            "default": true,
+            "Test": ["Test directory", "test"],
+            "GTest": ["Add google test as a submodule", true, "bool"]
+        },
+        "CI": {
+            "help": "Enable continuous integration services",
+            "default": true,
+            "Sys": ["Continuous integration service", "travis", ["none", "travis", "jenkins", "circle"]],
+            "Cov": {
+                "help": "Enable code coverage service",
+                "default": true,
+                "Sys": ["Code coverage service", "codecov", ["none", "codecov", "coveralls"]]
+            }
+        },
+        "Doc": {
+            "help": "Add documentation to the project",
+            "default": true,
+            "Doc": ["Documentation directory", "docs"],
+            "Sys": ["Documentation engine", "dauxio", ["none", "sphinx", "mkdocs", "doxygen", "docusaurus", "dauxio", "slate"]]
         }
     },
-    "Compiling": {
-        "force": true,
-        "CompSys": ["Compiling system", "make", ["make", "cmake", "none"]],
-        "CXX": ["Compiler", "clang++", ["g++", "clang++"]],
-        "CPP": ["C++ version", "c++17", ["c++11", "c++14", "c++17", "c++20"]],
-        "Link": ["Libraries to link"]
-    },
-    "UnitTests": {
-        "help": "Enable unit testing",
-        "default": true,
-        "Test": ["Test directory", "test"],
-        "GTest": ["Add google test as a submodule", true, "bool"]
-    },
-    "CI": {
-        "help": "Enable continuous integration services",
-        "default": true,
-        "Sys": ["Continuous integration service", "travis", ["none", "travis", "jenkins", "circle"]],
-        "Cov": {
-            "help": "Enable code coverage service",
-            "default": true,
-            "Sys": ["Code coverage service", "codecov", ["none", "codecov", "coveralls"]]
-        }
-    },
-    "Documentation": {
-        "help": "Add documentation to the project",
-        "default": true,
-        "Doc": ["Documentation directory", "docs"],
-        "Sys": ["Documentation engine", "none", ["none", "sphinx", "mkdocs", "doxygen", "docusaurus", "dauxio", "slate"]]
+    "Events": {
+        "Directories": [
+            ["{{Dir.Root}}"],
+            ["{{Dir.Root}}/{{Dir.Source}}"],
+            ["{{Dir.Root}}/{{Dir.Include}}"],
+            ["{{Dir.Root}}/{{Dir.Build}}"],
+            ["{{Dir.Root}}/{{Dir.External}}"],
+            ["UnitTests.Test", "{{Dir.Root}}/{{UnitTests.Test}}"],
+            ["Doc.Doc", "{{Dir.Root}}/{{Doc.Doc}}"]
+        ],
+        "Files": [
+            ["{{Dir.Root}}/{{Dir.Source}}/main.cpp", "source/main.cpp"],
+            ["{{Dir.Root}}/.clang-format", "clang-format"],
+            ["Git.Ignore", "{{Dir.Root}}/.gitignore", "gitignore"],
+            ["Compiling.Sys", "make", "{{Dir.Root}}/Makefile", "Makefile"],
+            ["Compiling.Sys", "make", "{{Dir.Root}}/{{Dir.Source}}/Makefile", "source/Makefile"],
+            ["Compiling.Sys", "make", "{{Dir.Root}}/{{Dir.External}}/Makefile", "external/Makefile"],
+            ["UnitTests", "{{Dir.Root}}/{{UnitTests.Test}}/tmp.cpp", "test/tmp.cpp"],
+            [
+                ["UnitTests", ["Compiling.Sys", "make"]],
+                "{{Dir.Root}}/{{UnitTests.Test}}/Makefile", "test/Makefile"
+            ],
+            ["CI.Sys", "Travis", "{{Dir.Root}}/.travis.yml", "travis.yml"],
+            ["Doc.Sys", "sphinx", "{{Dir.Root}}/{{Doc.Doc}}/Makefile", "doc/Makefile"],
+            ["Doc.Sys", "sphinx", "{{Dir.Root}}/{{Doc.Doc}}/source/conf.py", "doc/source/conf.py"],
+            ["Doc.Sys", "sphinx", "{{Dir.Root}}/{{Doc.Doc}}/source/index.rst", "doc/source/index.rst"],
+            ["Doc.Sys", "mkdocs", "{{Dir.Root}}/mkdocs.yml", "mkdocs.yml"],
+            ["Doc.Sys", "mkdocs", "{{Dir.Root}}/{{Doc.Doc}}/index.md", "doc/index.md"],
+            ["Doc.Sys", "doxygen", "{{Dir.Root}}/Doxyfile", "Doxyfile"],
+            ["Doc.Sys", "dauxio", "{{Dir.Root}}/{{Doc.Doc}}/config.json", "doc/config.json"]
+        ],
+        "Cmds": [
+            ["Git", "git init {{Dir.Root}}/."],
+            ["Git.Remote.URL", "cd {{Dir.Root}} && git remote add origin {{Git.Remote.URL}}"],
+            ["UnitTests.GTest", "cd {{Dir.Root}} && git submodule add https://github.com/google/googletest {{Dir.External}}/googletest"]
+
+        ]
     }
 }

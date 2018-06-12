@@ -21,7 +21,7 @@ def package_files(directory):
     return paths
 
 
-extra_files = package_files('quickstart/templates')
+extra_files = package_files('quickstart/options') + package_files('quickstart/templates')
 
 here = path.abspath(path.dirname(__file__))
 
