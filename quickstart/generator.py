@@ -115,7 +115,7 @@ def generate_dirs(dirs, options, env, dry):
     for event in dirs:
         if valid_event(event, options, "DIR"):
             print("GEN DIR:", replace_string(options, event[-1]))
-            if not dry:
+            if not dry and not os.path.exists(replace_string(options, event[-1])):
                 os.mkdir(replace_string(options, event[-1]))
 
 
